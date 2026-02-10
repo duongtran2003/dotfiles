@@ -451,6 +451,7 @@ require('lazy').setup({
         -- angularls = {
         --   capabilities = baseCapabilities,
         -- },
+        glsl_analyzer = {},
         cssls = {
           capabilities = baseCapabilities,
         },
