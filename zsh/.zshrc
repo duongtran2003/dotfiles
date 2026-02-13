@@ -119,3 +119,6 @@ export PATH=/usr/local/share/npm/bin:$PATH
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 export EDITOR=/snap/bin/nvim
+
+# Setting cursor shape
+echo -ne '\e[2 q'
