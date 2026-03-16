@@ -55,7 +55,7 @@ vim.opt.shiftwidth = 2
 vim.opt.softtabstop = 2
 vim.opt.expandtab = true
 
-vim.opt.mouse = 'a'
+vim.opt.mouse = 'nvi'
 
 vim.opt.showmode = false
 
@@ -124,11 +124,11 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-
-vim.keymap.set({ 'n', 'i', 'v', 'c' }, '<ScrollWheelUp>', '<Nop>')
-vim.keymap.set({ 'n', 'i', 'v', 'c' }, '<ScrollWheelDown>', '<Nop>')
-vim.keymap.set({ 'n', 'i', 'v', 'c' }, '<ScrollWheelLeft>', '<Nop>')
-vim.keymap.set({ 'n', 'i', 'v', 'c' }, '<ScrollWheelRight>', '<Nop>')
+--
+-- vim.keymap.set({ 'n', 'i', 'v', 'c' }, '<ScrollWheelUp>', '<Nop>')
+-- vim.keymap.set({ 'n', 'i', 'v', 'c' }, '<ScrollWheelDown>', '<Nop>')
+-- vim.keymap.set({ 'n', 'i', 'v', 'c' }, '<ScrollWheelLeft>', '<Nop>')
+-- vim.keymap.set({ 'n', 'i', 'v', 'c' }, '<ScrollWheelRight>', '<Nop>')
 
 -- Inlay hints
 vim.keymap.set('n', '<leader>th', function()
@@ -1643,9 +1643,16 @@ require('lazy').setup({
     dependencies = { 'nvim-tree/nvim-web-devicons', 'folke/snacks.nvim' },
     opts = {},
     config = function()
-      local actions = require('fzf-lua').actions
+      local fzf_lua = require 'fzf-lua'
+      local actions = fzf_lua.actions
       local snacks = require 'snacks.image'
-      require('fzf-lua').setup {
+
+      local function edit_and_resume(selected_file, options)
+        actions.file_edit(selected_file, options)
+        require('fzf-lua').resume()
+      end
+
+      fzf_lua.setup {
         previewers = {
           builtin = {
             snacks_image = {
@@ -1656,6 +1663,14 @@ require('lazy').setup({
         },
         grep = {
           rg_glob = true,
+          actions = {
+            ['ctrl-o'] = edit_and_resume,
+          },
+        },
+        files = {
+          actions = {
+            ['ctrl-o'] = edit_and_resume,
+          },
         },
         winopts = {
           border = 'single',
@@ -1675,6 +1690,7 @@ require('lazy').setup({
           actions = {
             ['alt-c'] = { fn = actions.buf_del, reload = true },
             ['ctrl-x'] = false,
+            ['ctrl-o'] = edit_and_resume,
           },
         },
       }
