@@ -1827,6 +1827,9 @@ require('lazy').setup({
           },
         },
       }
+
+      fzf_lua.register_ui_select()
+
       vim.keymap.set('n', '<leader>sf', '<cmd>FzfLua files<cr>', { desc = '[S]earch [F]iles' })
       vim.keymap.set('n', '<leader><leader>', '<cmd>FzfLua buffers --layout=reverse<cr>', { desc = '[S]earch Buffers' })
       vim.keymap.set('n', '<leader>sn', function()
