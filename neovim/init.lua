@@ -1,3 +1,10 @@
+-- PLEASE READ:
+-- nvim 0.12 and tree-sitter migration guide:
+-- 1. Switch treesitter to the main branch
+-- 2. Install treesitter-cli
+-- 3. :TSUninstall all
+-- 4. :TSInstall all
+
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
@@ -330,7 +337,6 @@ require('lazy').setup({
       'williamboman/mason.nvim',
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
-      'nvim-java/nvim-java',
       { 'saghen/blink.cmp' },
       {
         'j-hui/fidget.nvim',
@@ -656,6 +662,7 @@ require('lazy').setup({
             },
           },
         },
+        -- rust_analyzer = {},
       }
 
       require('mason').setup {
@@ -676,6 +683,84 @@ require('lazy').setup({
         vim.lsp.config(server_name, server_config)
         vim.lsp.enable(server_name)
       end
+    end,
+  },
+
+  {
+    'mrcjkb/rustaceanvim',
+    -- To avoid being surprised by breaking changes,
+    -- I recommend you set a version range
+    version = '^9',
+    -- This plugin implements proper lazy-loading (see :h lua-plugin-lazy).
+    -- No need for lazy.nvim to lazy-load it.
+    lazy = false,
+    config = function()
+      local mason_path = vim.fn.glob(vim.fn.stdpath 'data' .. '/mason/packages/codelldb')
+      local extension_path = mason_path .. '/extension/'
+
+      local codelldb_path = extension_path .. 'adapter/codelldb'
+      local liblldb_path = extension_path .. 'lldb/lib/liblldb.so'
+
+      if vim.fn.executable(codelldb_path) == 0 then
+        vim.notify('codelldb not found! Run :MasonInstall codelldb', vim.log.levels.WARN)
+        return
+      end
+
+      local cfg = require 'rustaceanvim.config'
+
+      vim.g.rustaceanvim = {
+        dap = {
+          adapter = cfg.get_codelldb_adapter(codelldb_path, liblldb_path),
+        },
+      }
+      -- Debugger keymap
+      local map = vim.keymap.set
+
+      -- Nvim DAP
+      map('n', '<Leader>dl', "<cmd>lua require'dap'.step_into()<CR>", { desc = 'Debugger step into' })
+      map('n', '<Leader>dj', "<cmd>lua require'dap'.step_over()<CR>", { desc = 'Debugger step over' })
+      map('n', '<Leader>dk', "<cmd>lua require'dap'.step_out()<CR>", { desc = 'Debugger step out' })
+      map('n', '<Leader>dc', "<cmd>lua require'dap'.continue()<CR>", { desc = 'Debugger continue' })
+      map('n', '<Leader>db', "<cmd>lua require'dap'.toggle_breakpoint()<CR>", { desc = 'Debugger toggle breakpoint' })
+      map(
+        'n',
+        '<Leader>dp',
+        "<cmd>lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>",
+        { desc = 'Debugger set conditional breakpoint' }
+      )
+      map('n', '<Leader>de', "<cmd>lua require'dap'.terminate()<CR>", { desc = 'Debugger reset' })
+      map('n', '<Leader>dr', "<cmd>lua require'dap'.run_last()<CR>", { desc = 'Debugger run last' })
+
+      -- rustaceanvim
+      map('n', '<Leader>dt', "<cmd>lua vim.cmd('RustLsp testables')<CR>", { desc = 'Debugger testables' })
+    end,
+  },
+
+  {
+    'mfussenegger/nvim-dap',
+    config = function()
+      local dap, dapui = require 'dap', require 'dapui'
+
+      dap.listeners.before.attach.dapui_config = function()
+        dapui.open()
+      end
+      dap.listeners.before.launch.dapui_config = function()
+        dapui.open()
+      end
+      dap.listeners.before.event_terminated.dapui_config = function()
+        dapui.close()
+      end
+      dap.listeners.before.event_exited.dapui_config = function()
+        dapui.close()
+      end
+    end,
+  },
+
+  {
+    'rcarriga/nvim-dap-ui',
+    dependencies = { 'mfussenegger/nvim-dap', 'nvim-neotest/nvim-nio' },
+    config = function()
+      require('dapui').setup()
     end,
   },
 
@@ -991,6 +1076,65 @@ require('lazy').setup({
   --     vim.api.nvim_set_hl(0, 'BufferInactiveModERROR', { fg = palette.bg_red, bg = palette.bg1 })
   --   end,
   -- },
+  -- {
+  --   'serhez/teide.nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   opts = {},
+  --   config = function()
+  --     local teide = require 'teide'
+  --     teide.setup {
+  --       style = 'dimmed', -- The theme comes in four styles, `darker`, `dark`, `dimmed`, and `light`
+  --       light_style = 'light', -- The theme is used when the background is set to light
+  --       transparent = false, -- Enable this to disable setting the background color
+  --       terminal_colors = true, -- Configure the colors used when opening a `:terminal` in Neovim
+  --       styles = {
+  --         -- Style to be applied to different syntax groups
+  --         -- Value is any valid attr-list value for `:help nvim_set_hl`
+  --         comments = { italic = true },
+  --         keywords = { italic = true },
+  --         functions = {},
+  --         variables = {},
+  --         -- Background styles. Can be "dark", "transparent" or "normal"
+  --         sidebars = 'dark', -- style for sidebars, see below
+  --         floats = 'dark', -- style for floating windows
+  --       },
+  --       light_brightness = 0.3, -- Adjusts the brightness of the colors of the **Light** style. Number between 0 and 1, from dull to vibrant colors
+  --       dim_inactive = false, -- dims inactive windows
+  --       lualine_bold = false, -- When `true`, section headers in the lualine theme will be bold
+  --
+  --       --- You can override specific color groups to use other groups or a hex color
+  --       --- function will be called with a ColorScheme table
+  --       ---@param colors ColorScheme
+  --       on_colors = function(colors) end,
+  --
+  --       --- You can override specific highlights to use other groups or a hex color
+  --       --- function will be called with a Highlights and ColorScheme table
+  --       ---@param highlights teide.Highlights
+  --       ---@param colors ColorScheme
+  --       on_highlights = function(highlights, colors) end,
+  --
+  --       cache = true, -- When set to true, the theme will be cached for better performance
+  --
+  --       ---@type table<string, boolean|{enabled:boolean}>
+  --       plugins = {
+  --         -- enable all plugins when not using lazy.nvim
+  --         -- set to false to manually enable/disable plugins
+  --         all = package.loaded.lazy == nil,
+  --         -- uses your plugin manager to automatically enable needed plugins
+  --         -- currently only lazy.nvim is supported
+  --         auto = true,
+  --         -- add any plugins here that you want to enable
+  --         -- for all possible plugins, see:
+  --         --   * https://github.com/serhez/teide.nvim/tree/main/lua/teide/groups
+  --         -- telescope = true,
+  --       },
+  --     }
+  --
+  --     vim.cmd.colorscheme 'teide'
+  --   end,
+  -- },
+  {},
   {
     'sainnhe/gruvbox-material',
     lazy = false,
@@ -1104,34 +1248,23 @@ require('lazy').setup({
     end,
   },
 
-  { -- Highlight, edit, and navigate code
+  {
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main', -- CRITICAL: must use main branch for 0.12
     build = ':TSUpdate',
-    opts = {
-      ensure_installed = {},
-      -- Autoinstall languages that are not installed
-      auto_install = true,
-      highlight = {
-        enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby' },
-      },
-      indent = { enable = true, disable = { 'ruby' } },
-    },
-    config = function(_, opts)
-      -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-
-      ---@diagnostic disable-next-line: missing-fields
-      require('nvim-treesitter.configs').setup(opts)
-
-      -- There are additional nvim-treesitter modules that you can use to interact
-      -- with nvim-treesitter. You should go explore a few and see what interests you:
-      --
-      --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-      --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-      --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+    config = function()
+      require('nvim-treesitter').setup {
+        -- Directory to install parsers and queries to (prepended to `runtimepath` to have priority)
+        install_dir = vim.fn.stdpath 'data' .. '/site',
+      }
+      vim.api.nvim_create_autocmd('FileType', {
+        callback = function()
+          -- Enable treesitter highlighting and disable regex syntax
+          pcall(vim.treesitter.start)
+          -- Enable treesitter-based indentation
+          vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        end,
+      })
     end,
   },
 
@@ -1242,8 +1375,8 @@ require('lazy').setup({
       }
       local map = vim.api.nvim_set_keymap
       local opts = { noremap = true, silent = true }
-      map('n', '<A-<>', '<Cmd>BufferMovePrevious<CR>', opts)
-      map('n', '<A->>', '<Cmd>BufferMoveNext<CR>', opts)
+      map('n', '<leader>b,', '<Cmd>BufferMovePrevious<CR>', opts)
+      map('n', '<leader>b.', '<Cmd>BufferMoveNext<CR>', opts)
       map('n', '<A-,>', '<Cmd>BufferPrevious<CR>', opts)
       map('n', '<A-.>', '<Cmd>BufferNext<CR>', opts)
     end,
