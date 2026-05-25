@@ -108,7 +108,7 @@ vim.opt.scrolloff = 14
 vim.opt.confirm = true
 
 -- Fat cursor in all modes
-vim.opt.guicursor = 'n-v-c-i:block'
+-- vim.opt.guicursor = 'n-v-c-i:block'
 
 -- term color
 vim.opt.termguicolors = true
@@ -662,6 +662,7 @@ require('lazy').setup({
             },
           },
         },
+        slangd = {},
         -- rust_analyzer = {},
       }
 
@@ -1334,10 +1335,10 @@ require('lazy').setup({
           -- Valid options to display the buffer index and -number are `true`, 'superscript' and 'subscript'
           buffer_index = false,
           buffer_number = false,
-          button = '',
+          button = '',
           -- Enables / disables diagnostic symbols
           diagnostics = {
-            [vim.diagnostic.severity.ERROR] = { enabled = true, icon = ' ' },
+            [vim.diagnostic.severity.ERROR] = { enabled = true, icon = '' },
             [vim.diagnostic.severity.WARN] = { enabled = false },
             [vim.diagnostic.severity.INFO] = { enabled = false },
             [vim.diagnostic.severity.HINT] = { enabled = false },
@@ -1357,8 +1358,8 @@ require('lazy').setup({
 
           -- Configure the icons on the bufferline when modified or pinned.
           -- Supports all the base icon options.
-          modified = { button = '●' },
-          pinned = { button = '', filename = true },
+          modified = { button = '' },
+          pinned = { button = '󰐃', filename = true },
 
           -- Use a preconfigured buffer appearance— can be 'default', 'powerline', or 'slanted'
           preset = 'default',
@@ -1368,7 +1369,7 @@ require('lazy').setup({
           alternate = { filetype = { enabled = false } },
           current = { buffer_index = false },
           inactive = {
-            button = '',
+            button = '',
           },
           visible = { modified = { buffer_number = false } },
         },
@@ -1416,7 +1417,22 @@ require('lazy').setup({
         },
         sections = {
           lualine_a = { 'mode' },
-          lualine_b = { 'branch', 'diff', 'diagnostics' },
+          lualine_b = {
+            'branch',
+            'diff',
+            {
+              'diagnostics',
+              sections = { 'error', 'warn', 'info', 'hint' },
+
+              -- CONFIGURE YOUR ICONS HERE
+              symbols = {
+                error = '',
+                warn = '',
+                info = '',
+                hint = '',
+              },
+            },
+          },
           lualine_c = {
             {
               'filename',
@@ -1451,18 +1467,18 @@ require('lazy').setup({
   },
 
   -- Color highlighting
-  {
-    'brenoprata10/nvim-highlight-colors',
-    config = function()
-      -- Ensure termguicolors is enabled if not already
-      vim.opt.termguicolors = true
-      require('nvim-highlight-colors').setup {
-        render = 'virtual',
-        virtual_symbol = '󱓻',
-        enable_tailwind = true,
-      }
-    end,
-  },
+  -- {
+  --   'brenoprata10/nvim-highlight-colors',
+  --   config = function()
+  --     -- Ensure termguicolors is enabled if not already
+  --     vim.opt.termguicolors = true
+  --     require('nvim-highlight-colors').setup {
+  --       render = 'virtual',
+  --       virtual_symbol = '󱓻',
+  --       enable_tailwind = true,
+  --     }
+  --   end,
+  -- },
 
   {
     'lukas-reineke/indent-blankline.nvim',
