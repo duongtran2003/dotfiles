@@ -46,11 +46,19 @@
 window-decoration   = none
 window-show-tab-bar = never
 
-font-family        = Maple Mono NF
-font-feature       = +calt, +liga, +cv01, +cv62, +cv08, ss03
-font-size          = 9
-font-style         = Medium
-adjust-cell-height = 25%
+# Maple Mono
+# font-family        = Maple Mono NF
+# font-feature       = -calt, -liga, +cv01, +cv62, ss03
+# font-size          = 9
+# font-style         = Medium
+# adjust-cell-height = 25%
+
+# Cascadia Mono
+font-family        = CaskaydiaCove NF
+font-feature       = -calt, -liga, ss19
+font-size          = 9.5 
+font-style         = Regular
+adjust-cell-height = 20%
 
 window-padding-balance = true
 window-padding-x       = 0
