@@ -1795,10 +1795,12 @@ require('lazy').setup({
       local fzf_lua = require 'fzf-lua'
       local actions = fzf_lua.actions
       local snacks = require 'snacks.image'
+      local utils = require 'fzf-lua.utils'
 
       local function edit_and_resume(selected_file, options)
         actions.file_edit(selected_file, options)
         require('fzf-lua').resume()
+        utils.feed_keys_termcodes 'a'
       end
 
       fzf_lua.setup {
