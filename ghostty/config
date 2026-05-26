@@ -53,10 +53,17 @@ window-show-tab-bar = never
 # font-style         = Medium
 # adjust-cell-height = 25%
 
+# Fantasque Sans 
+# font-family        = FantasqueSansM Nerd Font Mono
+# font-feature       = +ss01, -liga, -calt
+# font-size          = 10.5
+# font-style         = Regular
+# adjust-cell-height = 17%
+
 # Cascadia Mono
 font-family        = CaskaydiaCove NF
 font-feature       = -calt, -liga, ss19
-font-size          = 9.5 
+font-size          = 9.5
 font-style         = Regular
 adjust-cell-height = 20%
 
@@ -71,3 +78,5 @@ cursor-style            = block
 mouse-scroll-multiplier = precision:0.5, discrete:1.5
 
 theme = gruvbox-material-hard-dark
+
+mouse-hide-while-typing = true
