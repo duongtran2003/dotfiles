@@ -688,59 +688,16 @@ require('lazy').setup({
   },
 
   {
-    'mrcjkb/rustaceanvim',
-    -- To avoid being surprised by breaking changes,
-    -- I recommend you set a version range
-    version = '^9',
-    -- This plugin implements proper lazy-loading (see :h lua-plugin-lazy).
-    -- No need for lazy.nvim to lazy-load it.
-    lazy = false,
-    config = function()
-      local mason_path = vim.fn.glob(vim.fn.stdpath 'data' .. '/mason/packages/codelldb')
-      local extension_path = mason_path .. '/extension/'
-
-      local codelldb_path = extension_path .. 'adapter/codelldb'
-      local liblldb_path = extension_path .. 'lldb/lib/liblldb.so'
-
-      if vim.fn.executable(codelldb_path) == 0 then
-        vim.notify('codelldb not found! Run :MasonInstall codelldb', vim.log.levels.WARN)
-        return
-      end
-
-      local cfg = require 'rustaceanvim.config'
-
-      vim.g.rustaceanvim = {
-        dap = {
-          adapter = cfg.get_codelldb_adapter(codelldb_path, liblldb_path),
-        },
-      }
-      -- Debugger keymap
-      local map = vim.keymap.set
-
-      -- Nvim DAP
-      map('n', '<Leader>dl', "<cmd>lua require'dap'.step_into()<CR>", { desc = 'Debugger step into' })
-      map('n', '<Leader>dj', "<cmd>lua require'dap'.step_over()<CR>", { desc = 'Debugger step over' })
-      map('n', '<Leader>dk', "<cmd>lua require'dap'.step_out()<CR>", { desc = 'Debugger step out' })
-      map('n', '<Leader>dc', "<cmd>lua require'dap'.continue()<CR>", { desc = 'Debugger continue' })
-      map('n', '<Leader>db', "<cmd>lua require'dap'.toggle_breakpoint()<CR>", { desc = 'Debugger toggle breakpoint' })
-      map(
-        'n',
-        '<Leader>dp',
-        "<cmd>lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>",
-        { desc = 'Debugger set conditional breakpoint' }
-      )
-      map('n', '<Leader>de', "<cmd>lua require'dap'.terminate()<CR>", { desc = 'Debugger reset' })
-      map('n', '<Leader>dr', "<cmd>lua require'dap'.run_last()<CR>", { desc = 'Debugger run last' })
-
-      -- rustaceanvim
-      map('n', '<Leader>dt', "<cmd>lua vim.cmd('RustLsp testables')<CR>", { desc = 'Debugger testables' })
-    end,
-  },
-
-  {
     'mfussenegger/nvim-dap',
+    dependencies = {
+      'rcarriga/nvim-dap-ui',
+      'nvim-neotest/nvim-nio', -- Required dependency for dap-ui
+    },
     config = function()
-      local dap, dapui = require 'dap', require 'dapui'
+      local dap = require 'dap'
+      local dapui = require 'dapui'
+
+      dapui.setup()
 
       dap.listeners.before.attach.dapui_config = function()
         dapui.open()
@@ -754,6 +711,57 @@ require('lazy').setup({
       dap.listeners.before.event_exited.dapui_config = function()
         dapui.close()
       end
+
+      dap.adapters.codelldb = {
+        type = 'server',
+        port = '${port}',
+        executable = {
+          command = vim.fn.stdpath 'data' .. '/mason/bin/codelldb',
+          args = { '--port', '${port}' },
+        },
+      }
+
+      dap.configurations.cpp = {
+        {
+          name = 'Launch Dynamic Binary',
+          type = 'codelldb',
+          request = 'launch',
+          program = function()
+            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+          end,
+          cwd = '${workspaceFolder}',
+          stopOnEntry = false,
+          runInTerminal = false,
+        },
+      }
+
+      dap.configurations.c = dap.configurations.cpp
+      dap.configurations.rust = dap.configurations.cpp
+
+      vim.keymap.set('n', '<F5>', function()
+        dap.continue()
+      end, { desc = 'Debug: Start/Continue' })
+      vim.keymap.set('n', '<F10>', function()
+        dap.step_over()
+      end, { desc = 'Debug: Step Over' })
+      vim.keymap.set('n', '<F11>', function()
+        dap.step_into()
+      end, { desc = 'Debug: Step Into' })
+      vim.keymap.set('n', '<F12>', function()
+        dap.step_out()
+      end, { desc = 'Debug: Step Out' })
+      vim.keymap.set('n', '<leader>bp', function()
+        dap.toggle_breakpoint()
+      end, { desc = 'Debug: [B]reakpoint Toggle' })
+      vim.keymap.set('n', '<leader>B', function()
+        dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ')
+      end, { desc = 'Debug: Conditional [B]reakpoint' })
+      vim.keymap.set('n', '<leader>dx', function()
+        require('dap').terminate()
+      end, { desc = 'Debug: Stop Session/Terminate' })
+      vim.keymap.set('n', '<leader>du', function()
+        require('dapui').close()
+      end, { desc = 'Debug: Force Close UI Windows' })
     end,
   },
 
@@ -1676,34 +1684,6 @@ require('lazy').setup({
         persist_mode = false,
       }
     end,
-  },
-
-  -- Lsp saga
-  {
-    'nvimdev/lspsaga.nvim',
-    event = 'LspAttach',
-    config = function()
-      require('lspsaga').setup {
-        ui = {
-          border = 'bold', -- Options: "single", "double", "rounded", "bold", "shadow"
-          button = { '▐', '▌' },
-        },
-        symbol_in_winbar = {
-          enable = false,
-          color_mode = true,
-        },
-        lightbulb = { enable = false },
-        code_action = {
-          num_shortcut = true,
-          show_server_name = true,
-          extend_gitsigns = true,
-        },
-      }
-    end,
-    dependencies = {
-      'nvim-treesitter/nvim-treesitter', -- optional
-      'nvim-tree/nvim-web-devicons', -- optional
-    },
   },
 
   -- File tree
