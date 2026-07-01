@@ -78,7 +78,19 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-autocomplete history)
+zstyle ':completion:*' menu select=long
+zstyle ':autocomplete:tab:*' insert-unambiguous yes
+zstyle ':autocomplete:*' min-input 2
+
+plugins=(
+  git 
+  history 
+  zsh-autosuggestions 
+  zsh-syntax-highlighting 
+  zsh-autocomplete 
+)
+export ZSH_AUTOSUGGEST_STRATEGY=(history)
+export ZSH_AUTOSUGGEST_CLEAR_WIDGETS=(history-search-forward history-search-backward self-insert)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -122,3 +134,7 @@ export EDITOR=/snap/bin/nvim
 
 # Setting cursor shape
 echo -ne '\e[2 q'
+
+alias z='zellij'
+alias v='nvim'
+alias lz='lazygit'
